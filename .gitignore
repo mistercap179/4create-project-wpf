@@ -1,0 +1,45 @@
+# User-specific files
+.idea/
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Windows Installer files
+Thumbs.db
+ehthumbs.db
+
+# Windows Installer
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Build Folders
+bin/
+obj/
+bld/
+out/
+
+# VS for Mac
+.vscode/
+
+# Windows Installer
+PackageTemp/
+
+# JetBrains Rider
+.idea/
+
+# User-specific files (Rider)
+.idea/
+
+# ReSharper
+.idea/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp

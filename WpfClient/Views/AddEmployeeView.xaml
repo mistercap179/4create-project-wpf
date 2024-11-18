@@ -1,0 +1,58 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:syncfusion="http://schemas.syncfusion.com/wpf" x:Class="WpfClient.Views.AddEmployeeView"
+        mc:Ignorable="d"
+        Title="Add Employee" Height="179" Width="295">
+
+    <Window.Resources>
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#005A8C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="5"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#005A8C"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- First Name -->
+        <Label Content="First Name:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding FirstName, Mode=TwoWay}" Grid.Row="0" Grid.Column="1" Margin="5" />
+
+        <!-- Last Name -->
+        <Label Content="Last Name:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding LastName, Mode=TwoWay}" Grid.Row="1" Grid.Column="1" Margin="5" />
+
+        <!-- Default Vacation Days -->
+        <Label Content="Vacation Days:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding DefaultVacationDays, Mode=TwoWay}" Grid.Row="2" Grid.Column="1" Margin="5" />
+
+        <!-- Save Button -->
+        <Button Content="Submit" Command="{Binding AddEmployeeCommand}" Grid.Row="3" Grid.Column="1" 
+                HorizontalAlignment="Right" Margin="5" Width="90" Height="30" Style="{StaticResource ButtonStyle}" />
+    </Grid>
+</Window>
