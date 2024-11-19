@@ -46,7 +46,7 @@ docker-compose down; docker-compose build; docker-compose up -d
 ```bash
 Update-Package -reinstall
 ```
--Build and run the application.
+- Build and run the application.
 
 
 ### 4. Logging
