@@ -26,7 +26,7 @@ namespace WpfClient.ViewModels
 
         public VacationModel SelectedVacation { get; set; }
         public EmployeeModel SelectedEmployee { get; set; }
-        public ObservableCollection<EmployeeModel> Employees { get; set; } 
+        public ObservableCollection<EmployeeModel> Employees { get; set; }
 
         private DateTime _selectedDateFrom;
         public DateTime SelectedDateFrom
@@ -34,15 +34,17 @@ namespace WpfClient.ViewModels
             get => _selectedDateFrom;
             set
             {
-                if (value > SelectedDateTo)
+                if (SelectedDateTo != default(DateTime) && value > SelectedDateTo)
                 {
                     MessageBox.Show("Date From cannot be later than Date To.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
+
                 _selectedDateFrom = value;
                 OnPropertyChanged(nameof(SelectedDateFrom));
             }
         }
+
 
         private DateTime _selectedDateTo;
         public DateTime SelectedDateTo
@@ -50,15 +52,17 @@ namespace WpfClient.ViewModels
             get => _selectedDateTo;
             set
             {
-                if (value < SelectedDateFrom)
+                if (SelectedDateFrom != default(DateTime) && value < SelectedDateFrom)
                 {
                     MessageBox.Show("Date To cannot be earlier than Date From.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
+
                 _selectedDateTo = value;
                 OnPropertyChanged(nameof(SelectedDateTo));
             }
         }
+
 
         private ICommand _modifyVacationCommand;
         public ICommand ModifyVacationCommand => _modifyVacationCommand;

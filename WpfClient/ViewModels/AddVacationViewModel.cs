@@ -134,7 +134,7 @@ namespace WpfClient.ViewModels
             }
             else
             {
-                MessageBox.Show("The employee does not have enough remaining workdays for the selected period.",
+                MessageBox.Show("The employee does not have enough remaining vacation days for the selected period.",
                                 "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 log.Warn("Attempt to add vacation failed due to insufficient remaining vacation days.");
             }
