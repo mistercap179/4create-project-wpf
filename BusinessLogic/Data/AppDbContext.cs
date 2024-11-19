@@ -14,32 +14,38 @@ namespace BusinessLogic.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Employee> Employees { get; set; }
+
         public DbSet<Vacation> Vacations { get; set; }
 
+        // Configures the model relationships and seed data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // Seeds initial data for the Employee table
             modelBuilder.Entity<Employee>().HasData(
                 new Employee("John", "Smith", 14) { ID = Guid.NewGuid() },
                 new Employee("Jane", "Doe", 11) { ID = Guid.NewGuid() },
                 new Employee("Michael", "Jordan", 17) { ID = Guid.NewGuid() }
             );
 
-            // Define the relationship between Employee and Vacation
+            // Configures the one-to-many relationship between Employee and Vacation
             modelBuilder.Entity<Vacation>()
-                .HasOne<Employee>() // Establishes the relationship with the Employee entity
-                .WithMany(e => e.Vacations) // One employee can have multiple vacations
-                .HasForeignKey(v => v.EmployeeID) // Sets the foreign key in the Vacation model
-                .OnDelete(DeleteBehavior.Cascade); // Deletes vacations if the related employee is deleted
+                .HasOne<Employee>() // A vacation is associated with one employee
+                .WithMany(e => e.Vacations) // An employee can have multiple vacations
+                .HasForeignKey(v => v.EmployeeID) // Specifies the foreign key in the Vacation table
+                .OnDelete(DeleteBehavior.Cascade); // Ensures vacations are deleted if the related employee is deleted
         }
 
+        // Configures additional settings for the DbContext
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
 
-            //optionsBuilder.UseLazyLoadingProxies();
+            // Enables lazy loading of related data
             optionsBuilder.UseLazyLoadingProxies();
+
+            // Suppresses warnings about pending model changes
             optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
         }
     }

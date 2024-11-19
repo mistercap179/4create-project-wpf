@@ -89,22 +89,28 @@ namespace WpfClient.ViewModels
                     var result = MessageBox.Show("Are you sure you want to delete this vacation?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (result == MessageBoxResult.Yes)
                     {
+                        // Remove the vacation from the in-memory list
                         Vacations.Remove(vacation);
 
+                        // Calculate the number of workdays the vacation spanned
                         int requestedWorkDays = WorkdayHelper.CountWorkdays(vacation.DateFrom, vacation.DateTo);
 
+                        // Delete the vacation from the database
                         await _vacationCrud.DeleteAsync(vacation.ID);
 
+                        // Fetch the associated employee from the database
                         var employee = await _employeeCrud.GetByIdAsync(vacation.EmployeeID);
 
                         if (employee != null)
                         {
+                            // Update the employee's remaining vacation days
                             employee.RemainingVacationDays += requestedWorkDays;
 
+                            // Update the employee record in the database
                             await _employeeCrud.UpdateAsync(_mapper.Map<Employee>(employee));
 
+                            // Refresh the UI or data related to the employee
                             await RefreshEmployeeData(vacation.EmployeeID);
-
                         }
                     }
                 }
@@ -112,7 +118,6 @@ namespace WpfClient.ViewModels
                 {
                     Console.WriteLine($"An error occurred while deleting the vacation: {ex.Message}\n{ex.StackTrace}");
                 }
-                
             }
         }
 
@@ -122,18 +127,21 @@ namespace WpfClient.ViewModels
             {
                 try
                 {
-
                     var employee = await _employeeCrud.GetByIdAsync(vacation.EmployeeID);
 
                     if (employee != null)
                     {
                         EmployeeModel employeToEdit = _mapper.Map<EmployeeModel>(employee);
+
                         var modifyVacationViewModel = new ModifyVacationViewModel(_employeeCrud, _vacationCrud, _mapper, employeToEdit, vacation);
+
+                        // Create and configure the ModifyVacationView window
                         var secondWindow = new ModifyVacationView
                         {
                             DataContext = modifyVacationViewModel
                         };
 
+                        // Refresh employee data when the edit window is closed
                         secondWindow.Closed += async (s, e) =>
                         {
                             await RefreshEmployeeData(vacation.EmployeeID);
@@ -142,11 +150,12 @@ namespace WpfClient.ViewModels
                         secondWindow.Show();
                     }
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     Console.WriteLine($"An error occurred while editing the vacation: {ex.Message}\n{ex.StackTrace}");
                 }
             }
         }
+
     }
 }

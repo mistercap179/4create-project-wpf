@@ -31,6 +31,11 @@ namespace WpfClient.ViewModels
             get => _selectedDateFrom;
             set
             {
+                if (value > SelectedDateTo)
+                {
+                    MessageBox.Show("Date From cannot be later than Date To.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 _selectedDateFrom = value;
                 OnPropertyChanged(nameof(SelectedDateFrom));
             }
@@ -42,6 +47,11 @@ namespace WpfClient.ViewModels
             get => _selectedDateTo;
             set
             {
+                if (value < SelectedDateFrom)
+                {
+                    MessageBox.Show("Date To cannot be earlier than Date From.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 _selectedDateTo = value;
                 OnPropertyChanged(nameof(SelectedDateTo));
             }

@@ -22,7 +22,5 @@ namespace WpfClient.Models
             LastName = lastName;
             RemainingVacationDays = remainingVacationDays;
         }
-
-        public EmployeeModel() { }
     }
 }

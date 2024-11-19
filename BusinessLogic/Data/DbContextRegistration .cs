@@ -25,11 +25,19 @@ namespace BusinessLogic.Data
                 options.UseSqlServer(connectionString)
             );
 
+            // Automatic start of migrations
+            using (var serviceProvider = services.BuildServiceProvider())
+            {
+                using (var scope = serviceProvider.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    dbContext.Database.Migrate();
+                }
+            }
             // Register logging services
             services.AddLogging();
             // Register the generic CRUD service for any entity
             services.AddScoped(typeof(ICrud<,>), typeof(Crud<,>));
-
             // Return the services collection to allow for method chaining
             return services;
         }

@@ -15,7 +15,6 @@ namespace BusinessLogic.Crud
 
         public Crud(IServiceProvider serviceProvider)
         {
-            // Using DI to resolve DbContext and Logger
             _dbContext = serviceProvider.GetRequiredService<AppDbContext>();
         }
 

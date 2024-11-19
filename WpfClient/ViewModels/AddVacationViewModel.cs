@@ -34,6 +34,11 @@ namespace WpfClient.ViewModels
             {
                 if (_selectedDateFrom != value)
                 {
+                    if (value > SelectedDateTo)
+                    {
+                        MessageBox.Show("The start date cannot be later than the end date.", "Invalid Date Range", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
                     _selectedDateFrom = value;
                     OnPropertyChanged(nameof(SelectedDateFrom));
                 }
@@ -48,11 +53,17 @@ namespace WpfClient.ViewModels
             {
                 if (_selectedDateTo != value)
                 {
+                    if (value < SelectedDateFrom)
+                    {
+                        MessageBox.Show("The end date cannot be earlier than the start date.", "Invalid Date Range", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
                     _selectedDateTo = value;
                     OnPropertyChanged(nameof(SelectedDateTo));
                 }
             }
         }
+
         public AddVacationViewModel(ICrud<Employee, Guid> employeeCrud, ICrud<Vacation, Guid> vacationCrud, IMapper mapper)
         {
             _employeeCrud = employeeCrud;
@@ -97,7 +108,6 @@ namespace WpfClient.ViewModels
 
                 try
                 {
-                    // Add the new vacation
                     SelectedEmployee.Vacations.Add(newVacation);
                     await _vacationCrud.AddAsync(vacationEntity);
 

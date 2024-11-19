@@ -43,3 +43,6 @@ PackageTemp/
 *.msi
 *.msm
 *.msp
+
+# Environment files
+.env

@@ -43,7 +43,6 @@ namespace WpfClient.ViewModels
                     _selectedEmployee = value;
                     OnPropertyChanged();
 
-                    // Only trigger the command if an employee is selected
                     if (_selectedEmployee != null)
                     {
                         ShowVacationHistoryCommand.Execute(_selectedEmployee);
