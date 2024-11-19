@@ -3,6 +3,7 @@ using BusinessLogic.Crud;
 using BusinessLogic.Models;
 using GalaSoft.MvvmLight.Command;
 using MvvmHelpers;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,16 +22,10 @@ namespace WpfClient.ViewModels
         private readonly ICrud<Vacation, Guid> _vacationCrud;
         private readonly ICrud<Employee, Guid> _employeeCrud;
         private readonly IMapper _mapper;
-        private EmployeeModel _employee;
 
-        public VacationHistoryViewModel(ICrud<Vacation, Guid> vacationCrud, ICrud<Employee, Guid> employeeCrud, IMapper mapper,EmployeeModel employee)
-        {
-            _vacationCrud = vacationCrud;
-            _employeeCrud= employeeCrud;
-            _mapper = mapper;
-            _employee = employee;
-            LoadVacations();
-        }
+        private static readonly ILog log = LogManager.GetLogger(typeof(VacationHistoryViewModel));
+
+        private EmployeeModel _employee;
 
         private ObservableCollection<VacationModel> _vacations;
 
@@ -46,10 +41,19 @@ namespace WpfClient.ViewModels
         private ICommand _editVacationCommand;
         public ICommand EditVacationCommand => _editVacationCommand;
 
-        public int TotalVacationDaysUsed=> Vacations?.Sum(v => WorkdayHelper.CountWorkdays(v.DateFrom, v.DateTo)) ?? 0;
+        public int TotalVacationDaysUsed => Vacations?.Sum(v => WorkdayHelper.CountWorkdays(v.DateFrom, v.DateTo)) ?? 0;
 
         public int RemainingVacationDays => _employee.RemainingVacationDays;
-       
+
+        public VacationHistoryViewModel(ICrud<Vacation, Guid> vacationCrud, ICrud<Employee, Guid> employeeCrud, IMapper mapper, EmployeeModel employee)
+        {
+            _vacationCrud = vacationCrud;
+            _employeeCrud = employeeCrud;
+            _mapper = mapper;
+            _employee = employee;
+            LoadVacations();
+        }
+
         private async Task LoadVacations()
         {
             Vacations = new ObservableCollection<VacationModel>(_employee.Vacations);
@@ -61,23 +65,20 @@ namespace WpfClient.ViewModels
 
         private async Task RefreshEmployeeData(Guid employeeId)
         {
-            // Fetch the employee from the database again to get the updated RemainingVacationDays
             var updatedEmployee = await _employeeCrud.GetByIdAsync(employeeId);
             if (updatedEmployee == null)
             {
-                Console.WriteLine("Vacation entity not found.", "Error");
+                log.Error("Employee not found while refreshing data.");
                 return;
             }
 
-            // Map the employee data to EmployeeModel
             _employee = _mapper.Map<EmployeeModel>(updatedEmployee);
-
-            // Set Vacations to the updated list
             Vacations = new ObservableCollection<VacationModel>(_employee.Vacations);
 
-            // Trigger the necessary UI updates
             OnPropertyChanged(nameof(RemainingVacationDays));
             OnPropertyChanged(nameof(TotalVacationDaysUsed));
+
+            log.Info("Employee data refreshed successfully.");
         }
 
         private async void DeleteVacation(VacationModel vacation)
@@ -89,34 +90,26 @@ namespace WpfClient.ViewModels
                     var result = MessageBox.Show("Are you sure you want to delete this vacation?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (result == MessageBoxResult.Yes)
                     {
-                        // Remove the vacation from the in-memory list
                         Vacations.Remove(vacation);
 
-                        // Calculate the number of workdays the vacation spanned
                         int requestedWorkDays = WorkdayHelper.CountWorkdays(vacation.DateFrom, vacation.DateTo);
-
-                        // Delete the vacation from the database
                         await _vacationCrud.DeleteAsync(vacation.ID);
 
-                        // Fetch the associated employee from the database
                         var employee = await _employeeCrud.GetByIdAsync(vacation.EmployeeID);
-
                         if (employee != null)
                         {
-                            // Update the employee's remaining vacation days
                             employee.RemainingVacationDays += requestedWorkDays;
-
-                            // Update the employee record in the database
                             await _employeeCrud.UpdateAsync(_mapper.Map<Employee>(employee));
 
-                            // Refresh the UI or data related to the employee
                             await RefreshEmployeeData(vacation.EmployeeID);
+
+                            log.Info($"Vacation with ID {vacation.ID} deleted successfully.");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"An error occurred while deleting the vacation: {ex.Message}\n{ex.StackTrace}");
+                    log.Error($"Error occurred while deleting vacation: {ex.Message}", ex);
                 }
             }
         }
@@ -131,31 +124,30 @@ namespace WpfClient.ViewModels
 
                     if (employee != null)
                     {
-                        EmployeeModel employeToEdit = _mapper.Map<EmployeeModel>(employee);
+                        EmployeeModel employeeToEdit = _mapper.Map<EmployeeModel>(employee);
 
-                        var modifyVacationViewModel = new ModifyVacationViewModel(_employeeCrud, _vacationCrud, _mapper, employeToEdit, vacation);
+                        var modifyVacationViewModel = new ModifyVacationViewModel(_employeeCrud, _vacationCrud, _mapper, employeeToEdit, vacation);
 
-                        // Create and configure the ModifyVacationView window
                         var secondWindow = new ModifyVacationView
                         {
                             DataContext = modifyVacationViewModel
                         };
 
-                        // Refresh employee data when the edit window is closed
                         secondWindow.Closed += async (s, e) =>
                         {
                             await RefreshEmployeeData(vacation.EmployeeID);
                         };
 
                         secondWindow.Show();
+
+                        log.Info("Vacation edit window opened successfully.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"An error occurred while editing the vacation: {ex.Message}\n{ex.StackTrace}");
+                    log.Error($"Error occurred while showing edit vacation window: {ex.Message}", ex);
                 }
             }
         }
-
     }
 }

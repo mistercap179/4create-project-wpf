@@ -11,6 +11,7 @@ using AutoMapper;
 using BusinessLogic.Crud;
 using BusinessLogic.Models;
 using WpfClient.Models;
+using log4net;
 
 namespace WpfClient.ViewModels
 {
@@ -18,6 +19,8 @@ namespace WpfClient.ViewModels
     {
         private readonly ICrud<Employee, Guid> _employeeCrud;
         private readonly IMapper _mapper;
+
+        private static readonly ILog log = LogManager.GetLogger(typeof(AddEmployeeViewModel));
 
         private const int minVacationDays = 1;  
         private const int maxVacationDays = 30; 
@@ -55,13 +58,14 @@ namespace WpfClient.ViewModels
             }
         }
 
-        public ICommand AddEmployeeCommand { get; }
+        private ICommand _addEmployeeCommand;
+        public ICommand AddEmployeeCommand => _addEmployeeCommand;
 
         public AddEmployeeViewModel(ICrud<Employee, Guid> employeeCrud,IMapper mapper)
         {
             _employeeCrud = employeeCrud;
             _mapper = mapper;
-            AddEmployeeCommand = new RelayCommand(AddEmployee);
+            _addEmployeeCommand = new RelayCommand(AddEmployee);
         }
 
         private async void AddEmployee()
@@ -72,24 +76,33 @@ namespace WpfClient.ViewModels
                 {
                     EmployeeModel newEmployee = new EmployeeModel(FirstName, LastName, DefaultVacationDays);
 
+                    log.Info($"Attempting to add employee: {FirstName} {LastName} with {DefaultVacationDays} vacation days.");
+
                     await _employeeCrud.AddAsync(_mapper.Map<Employee>(newEmployee));
 
                     MessageBox.Show($"Employee {FirstName} {LastName} added with {DefaultVacationDays} vacation days.",
                                     "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     CloseWindow();
+
+                    log.Info($"Employee {FirstName} {LastName} successfully added.");
                 }
                 else
                 {
                     MessageBox.Show("Please fill in all fields with valid values.",
                                     "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    log.Warn("Validation failed for new employee: Missing or invalid fields.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An unexpected error occurred: {ex.Message}",
+                log.Error($"An unexpected error occurred while adding employee {FirstName} {LastName}.", ex);
+
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}",
                                 "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private bool IsEmployeeValid(string firstName, string lastName, int vacationDays)
         {

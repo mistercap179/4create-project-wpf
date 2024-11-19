@@ -2,6 +2,7 @@
 using BusinessLogic.Crud;
 using BusinessLogic.Models;
 using GalaSoft.MvvmLight.Command;
+using log4net;
 using MvvmHelpers;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace WpfClient.ViewModels
         private readonly ICrud<Vacation, Guid> _vacationCrud;
         private readonly ICrud<Employee, Guid> _employeeCrud;
         private readonly IMapper _mapper;
+
+        private static readonly ILog log = LogManager.GetLogger(typeof(ModifyVacationViewModel));
 
         public VacationModel SelectedVacation { get; set; }
         public EmployeeModel SelectedEmployee { get; set; }
@@ -57,7 +60,8 @@ namespace WpfClient.ViewModels
             }
         }
 
-        public ICommand ModifyVacationCommand { get; }
+        private ICommand _modifyVacationCommand;
+        public ICommand ModifyVacationCommand => _modifyVacationCommand;
 
         public ModifyVacationViewModel(ICrud<Employee, Guid> employeeCrud, ICrud<Vacation, Guid> vacationCrud, IMapper mapper, EmployeeModel employee, VacationModel vacation)
         {
@@ -71,7 +75,7 @@ namespace WpfClient.ViewModels
             SelectedDateFrom = vacation.DateFrom;
             SelectedDateTo = vacation.DateTo;
 
-            ModifyVacationCommand = new RelayCommand(SaveVacationChanges);
+            _modifyVacationCommand = new RelayCommand(SaveVacationChanges);
         }
 
         private async void SaveVacationChanges()
@@ -95,10 +99,12 @@ namespace WpfClient.ViewModels
                 {
                     await AdjustRemainingVacationDays(vacationToModify, difference, true);  // Vacation increased
                 }
+
+                log.Info($"Vacation modification successful: {SelectedVacation.ID} for employee {SelectedEmployee.ID}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during vacation modification: {ex.Message}\n{ex.StackTrace}");
+                log.Error($"Error during vacation modification: {ex.Message}", ex);
             }
         }
 
@@ -138,7 +144,7 @@ namespace WpfClient.ViewModels
             var vacationEntity = await _vacationCrud.GetByIdAsync(vacationToModify.ID);
             if (vacationEntity == null)
             {
-                Console.WriteLine("Vacation entity not found for update.", "Error");
+                log.Warn("Vacation entity not found for update.");
                 return;
             }
 
@@ -147,6 +153,7 @@ namespace WpfClient.ViewModels
 
             // Display success message
             MessageBox.Show("Vacation modified successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            log.Info($"Vacation updated successfully: {vacationEntity.ID} for employee {SelectedEmployee.ID}");
             CloseWindow();
         }
 
@@ -166,10 +173,12 @@ namespace WpfClient.ViewModels
                     employeeEntity.RemainingVacationDays = SelectedEmployee.RemainingVacationDays;
                     await _employeeCrud.UpdateAsync(employeeEntity);
                 }
+
+                log.Info($"Vacation and employee data updated successfully: Vacation ID = {vacationEntity.ID}, Employee ID = {SelectedEmployee.ID}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating vacation and employee: {ex.Message}\n{ex.StackTrace}");
+                log.Error($"Error updating vacation and employee: {ex.Message}", ex);
             }
         }
 

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using WpfClient.Models;
+using log4net;  // Dodaj log4net
 
 namespace WpfClient.ViewModels
 {
@@ -22,7 +23,8 @@ namespace WpfClient.ViewModels
         private readonly ICrud<Employee, Guid> _employeeCrud;
         private readonly IMapper _mapper;
 
-        public ICommand AddVacationCommand { get; }
+        private static readonly ILog log = LogManager.GetLogger(typeof(AddVacationViewModel)); 
+
         public IEnumerable<EmployeeModel> Employees { get; set; }
         public EmployeeModel SelectedEmployee { get; set; }
 
@@ -64,12 +66,15 @@ namespace WpfClient.ViewModels
             }
         }
 
+        private ICommand _addVacationCommand;
+        public ICommand AddVacationCommand => _addVacationCommand;
+
         public AddVacationViewModel(ICrud<Employee, Guid> employeeCrud, ICrud<Vacation, Guid> vacationCrud, IMapper mapper)
         {
             _employeeCrud = employeeCrud;
             _vacationCrud = vacationCrud;
             _mapper = mapper;
-            AddVacationCommand = new RelayCommand(AddVacation);
+            _addVacationCommand = new RelayCommand(AddVacation);
             LoadEmployees();
         }
 
@@ -83,17 +88,17 @@ namespace WpfClient.ViewModels
                     _mapper.Map<IEnumerable<Employee>, IEnumerable<EmployeeModel>>(employeesFromDb));
 
                 OnPropertyChanged(nameof(Employees));
+                log.Info("Employees loaded successfully.");
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine($"Error loading employees: {ex.Message}\n{ex.StackTrace}");
+                log.Error("Error loading employees due to invalid operation.", ex);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected error loading employees: {ex.Message}\n{ex.StackTrace}");
+                log.Error("Unexpected error loading employees.", ex);
             }
         }
-
 
         private async void AddVacation()
         {
@@ -115,22 +120,23 @@ namespace WpfClient.ViewModels
                     await UpdateEmployeeRemainingVacationDays(requestedWorkDays);
 
                     MessageBox.Show("Vacation added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    log.Info($"Vacation for employee {SelectedEmployee.ID} added successfully.");
                     CloseWindow();
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Console.WriteLine($"Error adding vacation: {ex.Message}\n{ex.StackTrace}");
-
+                    log.Error("Error adding vacation due to invalid operation.", ex);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Unexpected error adding vacation: {ex.Message}\n{ex.StackTrace}");
+                    log.Error("Unexpected error adding vacation.", ex);
                 }
             }
             else
             {
                 MessageBox.Show("The employee does not have enough remaining workdays for the selected period.",
                                 "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                log.Warn("Attempt to add vacation failed due to insufficient remaining vacation days.");
             }
         }
 
@@ -147,15 +153,16 @@ namespace WpfClient.ViewModels
                     employeeEntity.Vacations = _mapper.Map<List<Vacation>>(SelectedEmployee.Vacations);
 
                     await _employeeCrud.UpdateAsync(employeeEntity);
+                    log.Info($"Employee {SelectedEmployee.ID}'s remaining vacation days updated.");
                 }
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine($"Error updating employee vacation data: {ex.Message}\n{ex.StackTrace}");
+                log.Error("Error updating employee vacation data due to invalid operation.", ex);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected error updating employee vacation data: {ex.Message}\n{ex.StackTrace}");
+                log.Error("Unexpected error updating employee vacation data.", ex);
             }
         }
 
@@ -164,6 +171,7 @@ namespace WpfClient.ViewModels
             if (SelectedEmployee == null || SelectedDateFrom == null || SelectedDateTo == null)
             {
                 MessageBox.Show("Please fill in all fields before saving.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                log.Warn("Invalid input detected while adding vacation: Missing employee or dates.");
                 return false;
             }
             return true;

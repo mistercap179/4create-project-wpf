@@ -2,6 +2,7 @@
 using BusinessLogic.Crud;
 using BusinessLogic.Models;
 using GalaSoft.MvvmLight.Command;
+using log4net;
 using MvvmHelpers;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,9 @@ namespace WpfClient.ViewModels
         private readonly ICrud<BusinessLogic.Models.Employee, Guid> _employeeCrud;
         private readonly ICrud<BusinessLogic.Models.Vacation, Guid> _vacationCrud;
         private readonly IMapper _mapper;
-        
+
+        private static readonly ILog log = LogManager.GetLogger(typeof(EmployeeViewModel));
+
         private ObservableCollection<EmployeeModel> _employees;
 
         public ObservableCollection<EmployeeModel> Employees
@@ -81,14 +84,16 @@ namespace WpfClient.ViewModels
                 Employees = new ObservableCollection<EmployeeModel>(
                     _mapper.Map<IEnumerable<Employee>, IEnumerable<EmployeeModel>>(employeesFromDb));
 
+                log.Info("Successfully loaded employees.");
+
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine($"Error loading employees: {ex.Message}\n{ex.StackTrace}");
+                log.Error($"Error loading employees: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected error loading employees: {ex.Message}\n{ex.StackTrace}");
+                log.Error($"Unexpected error loading employees: {ex.Message}", ex);
             }
         }
 
@@ -105,14 +110,15 @@ namespace WpfClient.ViewModels
 
                 secondWindow.Closed += async (s, e) =>
                 {
-                    await LoadEmployees(); 
+                    await LoadEmployees();
+                    log.Info("AddEmployeeView closed.");
                 };
 
                 secondWindow.Show();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error adding employee: {ex.Message}\n{ex.StackTrace}");
+                log.Error($"Error showing add employee view: {ex.Message}", ex);
             }
         }
 
@@ -130,7 +136,8 @@ namespace WpfClient.ViewModels
 
                     secondWindow.Closed += async (s, e) =>
                     {
-                        await LoadEmployees(); 
+                        await LoadEmployees();
+                        log.Info("VacationHistoryView closed.");
                     };
 
                     secondWindow.Show();
@@ -138,7 +145,7 @@ namespace WpfClient.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error showing vacation history: {ex.Message}\n{ex.StackTrace}");
+                log.Error($"Error showing vacation history: {ex.Message}", ex);
             }
         }
 
@@ -154,14 +161,15 @@ namespace WpfClient.ViewModels
 
                 secondWindow.Closed += async (s, e) =>
                 {
-                    await LoadEmployees(); 
+                    await LoadEmployees();
+                    log.Info("AddVacationView closed.");
                 };
 
                 secondWindow.Show();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error adding vacation: {ex.Message}\n{ex.StackTrace}");
+                log.Error($"Error showing add vacation view: {ex.Message}", ex);
             }
         }
 

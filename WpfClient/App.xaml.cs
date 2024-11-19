@@ -12,6 +12,8 @@ using BusinessLogic.Crud;
 using BusinessLogic.Models;
 using WpfClient.ViewModels;
 using WpfClient.Views;
+using log4net;
+using log4net.Config;
 
 namespace WpfClient
 {
@@ -22,11 +24,17 @@ namespace WpfClient
     {
         // This property holds the service provider for dependency injection
         public static IServiceProvider ServiceProvider { get; private set; }
+        
+        // Static logger field
+        private static readonly ILog log = LogManager.GetLogger(typeof(App));
 
         // This method is called when the application starts
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // Initialize Log4Net from the configuration file
+            XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
 
             // Create a new service collection (DI container)
             var serviceCollection = new ServiceCollection();
@@ -46,7 +54,10 @@ namespace WpfClient
             employeeView.DataContext = employeeViewModel;
 
             // Show the EmployeeView window
-            employeeView.Show();
+            employeeView.Show();            
+            
+            // Log an informational message at the start
+            log.Info("Application Starting");
         }
 
         // Method to configure and register services in the DI container
