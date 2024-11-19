@@ -39,8 +39,15 @@ docker-compose down; docker-compose build; docker-compose up -d
 ```
 
 ### 3. Start the WPF Application
-- Open the **WpfClient** project in **Visual Studio**.
-- Build and run the application.
+- Open the solution in **Visual Studio**.
+- Ensure that all NuGet packages are installed or up-to-date:
+- Right-click on the solution in **Solution Explorer** and select **Restore NuGet Packages**.
+- Alternatively, you can open the **Package Manager Console** and run the following command to restore or update packages:
+```bash
+Update-Package -reinstall
+```
+-Build and run the application.
+
 
 ### 4. Logging
 Logs for the application can be found in the following path:
